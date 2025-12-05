@@ -1,2 +1,6 @@
 i32 a = 5;
 mut i16 b = 10;
+
+IO.println("Initial values:");
+IO.println(a);
+IO.println(b);

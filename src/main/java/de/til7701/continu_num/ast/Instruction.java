@@ -1,4 +1,6 @@
 package de.til7701.continu_num.ast;
 
-public interface Instruction extends Node {
+public sealed interface Instruction extends Node permits
+        MethodCall,
+        SymbolInitialization {
 }

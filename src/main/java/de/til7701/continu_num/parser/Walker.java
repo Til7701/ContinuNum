@@ -4,24 +4,38 @@ import de.holube.continu_num.parser.ContinuNumParser;
 import de.holube.continu_num.parser.ContinuNumParserBaseVisitor;
 import de.til7701.continu_num.ast.*;
 import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.tree.ParseTree;
 import picocli.CommandLine;
 
 import java.util.List;
+import java.util.Optional;
 
 public class Walker extends ContinuNumParserBaseVisitor<Node> {
 
     @Override
     public ContinuNumFile visitCompilationUnit(ContinuNumParser.CompilationUnitContext ctx) {
         CommandLine.tracer().debug("Visiting CompilationUnit %s", ctx.getText());
-        List<Instruction> instructions;
 
-        instructions = ctx.statement().stream()
-                .map(instructionContext -> (Instruction) visit(instructionContext))
+        List<Instruction> instructions = ctx.statement().stream()
+                .map(statementContext -> (Instruction) visit(statementContext))
                 .toList();
 
         return new ContinuNumFile(
                 instructions
         );
+    }
+
+    @Override
+    public Node visitStatement(ContinuNumParser.StatementContext ctx) {
+        CommandLine.tracer().debug("Visiting Statement %s", ctx.getText());
+
+        if (ctx.methodCall() != null) {
+            return visit(ctx.methodCall());
+        } else if (ctx.symbolDefinition() != null) {
+            return visit(ctx.symbolDefinition());
+        } else {
+            throw new ParserException("Unknown statement type: " + ctx.getText());
+        }
     }
 
     @Override
@@ -40,6 +54,34 @@ public class Walker extends ContinuNumParserBaseVisitor<Node> {
                 name,
                 expression
         );
+    }
+
+    @Override
+    public Node visitMethodCall(ContinuNumParser.MethodCallContext ctx) {
+        CommandLine.tracer().debug("Visiting MethodCall %s", ctx.getText());
+
+        Optional<String> typeName = Optional.ofNullable(ctx.TypeIdentifier()).map(ParseTree::getText);
+        String methodName = ctx.SymbolIdentifier().getText();
+        List<Expression> arguments = ctx.expression().stream()
+                .map(expressionContext -> (Expression) visit(expressionContext))
+                .toList();
+
+        return new MethodCall(typeName, methodName, arguments);
+    }
+
+    @Override
+    public Node visitExpression(ContinuNumParser.ExpressionContext ctx) {
+        CommandLine.tracer().debug("Visiting Expression %s", ctx.getText());
+
+        if (ctx.literalExpression() != null) {
+            return visit(ctx.literalExpression());
+        } else if (ctx.symbolIdentifierExpression() != null) {
+            return visit(ctx.symbolIdentifierExpression());
+        } else if (ctx.methodCall() != null) {
+            return visit(ctx.methodCall());
+        } else {
+            throw new ParserException("Unknown expression type: " + ctx.getText());
+        }
     }
 
     @Override

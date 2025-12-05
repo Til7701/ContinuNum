@@ -7,16 +7,18 @@ options {
 compilationUnit : statement* EOF;
 
 statement
-    : symbolDefinition
+    : symbolDefinition SEMI
+    | methodCall SEMI
     ;
 
 symbolDefinition
-    : MUT? TypeIdentifier SymbolIdentifier ASSIGN expression SEMI
+    : MUT? TypeIdentifier SymbolIdentifier ASSIGN expression
     ;
 
 expression
     : literalExpression
     | symbolIdentifierExpression
+    | methodCall
     ;
 
 literalExpression
@@ -27,4 +29,8 @@ literalExpression
 
 symbolIdentifierExpression
     : SymbolIdentifier
+    ;
+
+methodCall
+    : (TypeIdentifier DOT)? SymbolIdentifier LPAREN (expression (COMMA expression)*)? RPAREN
     ;

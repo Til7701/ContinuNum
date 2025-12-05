@@ -2,10 +2,6 @@ lexer grammar ContinuNumLexer;
 
 MUT: 'mut';
 
-IntegerLiteral : [0-9]+;
-StringLiteral : '"' ( ~["\\] | '\\' . )* '"';
-BooleanLiteral : 'true' | 'false';
-
 LPAREN : '(';
 RPAREN : ')';
 LBRACE : '{';
@@ -51,6 +47,9 @@ OR_ASSIGN      : '|=';
 XOR_ASSIGN     : '^=';
 MOD_ASSIGN     : '%=';
 
+IntegerLiteral : [0-9]+;
+StringLiteral : '"' ( ~["\\] | '\\' . )* '"';
+BooleanLiteral : 'true' | 'false';
 
 TypeIdentifier: [A-Z][a-zA-Z_0-9]* | PRIMITIVE;
 PRIMITIVE: 'i8' | 'i16' | 'i32' | 'i64' | 'f32' | 'f64' | 'bool' | 'str' | 'char';

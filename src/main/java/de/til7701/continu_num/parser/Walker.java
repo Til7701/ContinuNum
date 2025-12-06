@@ -33,6 +33,8 @@ public class Walker extends ContinuNumParserBaseVisitor<Node> {
             return visit(ctx.methodCall());
         } else if (ctx.symbolDefinition() != null) {
             return visit(ctx.symbolDefinition());
+        } else if (ctx.assignment() != null) {
+            return visit(ctx.assignment());
         } else {
             throw new ParserException("Unknown statement type: " + ctx.getText());
         }
@@ -79,6 +81,21 @@ public class Walker extends ContinuNumParserBaseVisitor<Node> {
             return visit(ctx.symbolIdentifierExpression());
         } else if (ctx.methodCall() != null) {
             return visit(ctx.methodCall());
+        } else if (ctx.expression() != null) {
+            if (ctx.expression().size() == 1) {
+                return visit(ctx.expression(0));
+            } else if (ctx.expression().size() == 2) {
+                Expression left = (Expression) visit(ctx.expression(0));
+                Expression right = (Expression) visit(ctx.expression(1));
+                String operator = ctx.getChild(1).getText();
+                return new BinaryExpression(
+                        left,
+                        BinaryOperator.fromString(operator),
+                        right
+                );
+            } else {
+                throw new ParserException("Unsupported expression format: " + ctx.getText());
+            }
         } else {
             throw new ParserException("Unknown expression type: " + ctx.getText());
         }
@@ -115,6 +132,16 @@ public class Walker extends ContinuNumParserBaseVisitor<Node> {
 
         String name = ctx.SymbolIdentifier().getText();
         return new SymbolExpression(name);
+    }
+
+    @Override
+    public Node visitAssignment(ContinuNumParser.AssignmentContext ctx) {
+        CommandLine.tracer().debug("Visiting Assignment %s", ctx.getText());
+
+        String name = ctx.SymbolIdentifier().getText();
+        Expression value = (Expression) visit(ctx.expression());
+
+        return new Assignment(name, value);
     }
 
     @Override

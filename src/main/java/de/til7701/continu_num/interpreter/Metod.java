@@ -1,7 +1,7 @@
 package de.til7701.continu_num.interpreter;
 
-public interface Metod<T> {
+public interface Metod {
 
-    Result<T> execute(Object[] args);
+    Variable execute(Object[] args);
 
 }

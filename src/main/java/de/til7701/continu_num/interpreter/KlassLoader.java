@@ -6,23 +6,28 @@ import java.util.Map;
 
 public class KlassLoader {
 
+    private final VariableFactory variableFactory = new VariableFactory();
+
     public Klass loadJavaClass(Class<?> javaClass) {
         String className = javaClass.getSimpleName();
-        Map<String, Metod<?>> methods = loadJavaMethods(javaClass);
+        Map<String, Metod> methods = loadJavaMethods(javaClass);
         return new Klass(className, methods);
     }
 
-    private Map<String, Metod<?>> loadJavaMethods(Class<?> javaClass) {
-        Map<String, Metod<?>> metods = new HashMap<>();
+    private Map<String, Metod> loadJavaMethods(Class<?> javaClass) {
+        Map<String, Metod> metods = new HashMap<>();
 
         Method[] javaMethods = javaClass.getDeclaredMethods();
         for (Method javaMethod : javaMethods) {
             String methodName = javaMethod.getName();
-            Metod<?> metod = args -> {
+            Metod metod = args -> {
                 try {
                     Object result = javaMethod.invoke(null, args);
                     String returnType = extractReturnType(javaMethod);
-                    return new Result<>(returnType, result);
+                    if (returnType.equals("void")) {
+                        return VariableFactory.VOID;
+                    }
+                    return variableFactory.createVariable(false, returnType, result);
                 } catch (Exception e) {
                     throw new RuntimeException("Error invoking method " + methodName + " of class " + javaClass.getSimpleName(), e);
                 }

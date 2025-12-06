@@ -1,9 +1,13 @@
 package de.til7701.continu_num.interpreter;
 
-public interface Variable<T> {
+public interface Variable {
+
+    String getType();
 
     boolean isMutable();
 
-    Result<T> getValue();
+    Object getValue();
+
+    Variable asMutable();
 
 }

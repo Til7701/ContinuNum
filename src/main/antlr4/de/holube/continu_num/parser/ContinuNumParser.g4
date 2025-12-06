@@ -8,6 +8,7 @@ compilationUnit : statement* EOF;
 
 statement
     : symbolDefinition SEMI
+    | assignment SEMI
     | methodCall SEMI
     ;
 
@@ -19,6 +20,15 @@ expression
     : literalExpression
     | symbolIdentifierExpression
     | methodCall
+    | expression binaryOperator expression
+    | LPAREN expression RPAREN
+    ;
+
+binaryOperator
+    : ADD
+    | SUB
+    | MUL
+    | DIV
     ;
 
 literalExpression
@@ -29,6 +39,10 @@ literalExpression
 
 symbolIdentifierExpression
     : SymbolIdentifier
+    ;
+
+assignment
+    : SymbolIdentifier ASSIGN expression
     ;
 
 methodCall

@@ -4,11 +4,11 @@ import java.util.Map;
 
 public record Klass(
         String name,
-        Map<String, Metod<?>> methods
+        Map<String, Metod> methods
 ) {
 
-    <T> Result<T> executeMethod(String methodName, Object... args) {
-        Metod<T> metod = (Metod<T>) methods.get(methodName);
+    Variable executeMethod(String methodName, Object... args) {
+        Metod metod = methods.get(methodName);
         if (metod == null) {
             throw new RuntimeException("Method " + methodName + " not found in class " + name);
         }

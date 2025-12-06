@@ -1,17 +1,20 @@
 package de.til7701.continu_num.interpreter.variables;
 
-import de.til7701.continu_num.interpreter.Result;
 import de.til7701.continu_num.interpreter.Variable;
 import lombok.AllArgsConstructor;
 
 import java.util.Objects;
 
 @AllArgsConstructor
-public final class I32Variable implements Variable<Integer> {
+public final class I32Variable implements Variable {
 
     private final boolean mutable;
 
     private int value;
+
+    public I32Variable(Object value) {
+        this(false, value);
+    }
 
     public I32Variable(boolean mutable, Object value) {
         this.mutable = mutable;
@@ -29,13 +32,23 @@ public final class I32Variable implements Variable<Integer> {
     }
 
     @Override
+    public String getType() {
+        return "i32";
+    }
+
+    @Override
     public boolean isMutable() {
         return mutable;
     }
 
     @Override
-    public Result<Integer> getValue() {
-        return new Result<>("i32", value);
+    public Integer getValue() {
+        return value;
+    }
+
+    @Override
+    public Variable asMutable() {
+        return new I32Variable(true, value);
     }
 
     public void setValue(int value) {

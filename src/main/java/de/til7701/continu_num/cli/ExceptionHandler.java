@@ -6,6 +6,7 @@ public class ExceptionHandler implements CommandLine.IExecutionExceptionHandler 
 
     public int handleExecutionException(Exception ex, CommandLine cmd, CommandLine.ParseResult parseResult) {
         cmd.getErr().println(cmd.getColorScheme().errorText(ex.getMessage()));
+        ex.printStackTrace();
 
         return cmd.getExitCodeExceptionMapper() != null
                 ? cmd.getExitCodeExceptionMapper().getExitCode(ex)

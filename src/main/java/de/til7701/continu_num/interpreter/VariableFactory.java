@@ -10,7 +10,7 @@ public class VariableFactory {
             case I32 _ -> new I32Variable(variable.isMutable(), variable.value());
             case I16 _ -> new I16Variable(variable.isMutable(), variable.value());
             case None _ -> throw new UnsupportedOperationException("Cannot cast to None type");
-            case Str _ -> new StringVariable(variable.isMutable(), variable.value().toString());
+            case Str _ -> new StrVariable(variable.isMutable(), variable.value().toString());
             case Any _ -> new AnyVariable(variable.isMutable(), variable.value());
         };
     }
@@ -20,7 +20,7 @@ public class VariableFactory {
             case I32 _ -> new I32Variable(false, result);
             case I16 _ -> new I16Variable(false, result);
             case None _ -> NoneVariable.INSTANCE;
-            case Str _ -> new StringVariable(false, result.toString());
+            case Str _ -> new StrVariable(false, result);
             case Any _ -> new AnyVariable(false, result);
         };
     }

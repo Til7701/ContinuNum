@@ -12,6 +12,9 @@ a = a + 15;
 a = a * 2;
 a = a - 10;
 a = a / 5;
+IO.println(a + 100);
 
 IO.println("Final values:");
 IO.println(a);
+
+IO.println(b[2]);

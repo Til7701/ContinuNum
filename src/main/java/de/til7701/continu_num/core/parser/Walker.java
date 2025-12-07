@@ -85,7 +85,7 @@ public class Walker extends ContinuNumParserBaseVisitor<Node> {
         } else if (ctx.expression() != null) {
             if (ctx.expression().size() == 1) {
                 return visit(ctx.expression(0));
-            } else if (ctx.expression().size() == 2) {
+            } else if (ctx.expression().size() == 2 && ctx.binaryOperator() != null) {
                 Expression left = (Expression) visit(ctx.expression(0));
                 Expression right = (Expression) visit(ctx.expression(1));
                 String operator = ctx.getChild(1).getText();
@@ -94,6 +94,11 @@ public class Walker extends ContinuNumParserBaseVisitor<Node> {
                         BinaryOperator.fromString(operator),
                         right
                 );
+            } else if (ctx.expression().size() == 2 && ctx.getChild(1).getText().equals("[")
+                    && ctx.getChild(3).getText().equals("]")) {
+                Expression collection = (Expression) visit(ctx.expression(0));
+                Expression index = (Expression) visit(ctx.expression(1));
+                return new BinaryExpression(collection, BinaryOperator.COLLECTION_ACCESS, index);
             } else {
                 throw new ParserException("Unsupported expression format: " + ctx.getText());
             }

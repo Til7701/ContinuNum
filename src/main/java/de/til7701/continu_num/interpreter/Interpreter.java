@@ -4,7 +4,7 @@ import de.til7701.continu_num.core.ast.*;
 import de.til7701.continu_num.core.environment.Environment;
 import de.til7701.continu_num.core.reflect.*;
 import de.til7701.continu_num.interpreter.variables.I32Variable;
-import de.til7701.continu_num.interpreter.variables.StringVariable;
+import de.til7701.continu_num.interpreter.variables.StrVariable;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -115,7 +115,7 @@ public class Interpreter {
         return switch (expression) {
             case BooleanLiteralExpression _ -> throw new UnsupportedOperationException();
             case IntegerLiteralExpression(String value) -> new I32Variable(Integer.parseInt(value));
-            case StringLiteralExpression(String value) -> new StringVariable(value);
+            case StringLiteralExpression(String value) -> new StrVariable(value);
             case MethodCall methodCall -> executeMethodCall(methodCall);
             case SymbolExpression(String identifier) -> context.getVariable(identifier);
             case BinaryExpression(Expression left, BinaryOperator operator, Expression right) -> {

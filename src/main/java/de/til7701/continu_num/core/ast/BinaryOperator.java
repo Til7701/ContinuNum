@@ -7,7 +7,8 @@ public enum BinaryOperator {
     ADD("+"),
     SUBTRACT("-"),
     MULTIPLY("*"),
-    DIVIDE("/");
+    DIVIDE("/"),
+    COLLECTION_ACCESS(null);
 
     @Getter
     private final String symbol;

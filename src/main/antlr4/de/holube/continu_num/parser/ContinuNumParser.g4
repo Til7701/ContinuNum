@@ -22,6 +22,7 @@ expression
     | methodCall
     | expression binaryOperator expression
     | LPAREN expression RPAREN
+    | expression LBRACK expression RBRACK // collection access
     ;
 
 binaryOperator

@@ -1,5 +1,7 @@
 package de.til7701.continu_num.core.reflect;
 
+import de.til7701.continu_num.core.ast.BinaryOperator;
+
 public non-sealed interface Str extends Type {
 
     default boolean isAssignableFrom(Type other) {
@@ -8,6 +10,9 @@ public non-sealed interface Str extends Type {
             default -> false;
         };
     }
+
+    @BinaryOp(operator = BinaryOperator.COLLECTION_ACCESS)
+    Str charAt(Str str, I32 index);
 
     static Str instance() {
         return Impl.INSTANCE;
@@ -18,6 +23,11 @@ public non-sealed interface Str extends Type {
         private static final Str INSTANCE = new Impl();
 
         private Impl() {
+        }
+
+        @Override
+        public Str charAt(Str str, I32 index) {
+            throw new UnsupportedOperationException();
         }
 
         @Override

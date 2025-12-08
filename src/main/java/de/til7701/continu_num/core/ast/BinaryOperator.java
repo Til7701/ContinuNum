@@ -8,6 +8,12 @@ public enum BinaryOperator {
     SUBTRACT("-"),
     MULTIPLY("*"),
     DIVIDE("/"),
+    LT("<"),
+    GT(">"),
+    LTE("<="),
+    GTE(">="),
+    EQ("=="),
+    NEQ("!="),
     COLLECTION_ACCESS(null);
 
     @Getter
@@ -18,12 +24,11 @@ public enum BinaryOperator {
     }
 
     public static BinaryOperator fromString(String operator) {
-        return switch (operator) {
-            case "+" -> ADD;
-            case "-" -> SUBTRACT;
-            case "*" -> MULTIPLY;
-            case "/" -> DIVIDE;
-            default -> throw new IllegalArgumentException("Unknown operator: " + operator);
-        };
+        for (BinaryOperator op : values()) {
+            if (op.symbol != null && op.symbol.equals(operator)) {
+                return op;
+            }
+        }
+        throw new IllegalArgumentException("Unknown operator: " + operator);
     }
 }

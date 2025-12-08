@@ -15,4 +15,12 @@ public class Context {
         return variables.get(name);
     }
 
+    public void destroyVariable(String name) {
+        variables.remove(name);
+    }
+
+    public boolean hasVariable(String name) {
+        return variables.containsKey(name);
+    }
+
 }

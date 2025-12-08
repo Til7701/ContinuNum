@@ -1,5 +1,6 @@
 package de.til7701.continu_num.interpreter.variables;
 
+import de.til7701.continu_num.core.reflect.Bool;
 import de.til7701.continu_num.core.reflect.I32;
 import de.til7701.continu_num.core.reflect.Type;
 import de.til7701.continu_num.interpreter.Variable;
@@ -114,4 +115,13 @@ public final class I32Variable implements Variable, I32 {
         }
         throw new IllegalArgumentException("Operands must be I32Variable instances");
     }
+
+    @Override
+    public Bool lt(I32 a, I32 b) {
+        if (a instanceof I32Variable va && b instanceof I32Variable vb) {
+            return va.value < vb.value ? BoolVariable.TRUE : BoolVariable.FALSE;
+        }
+        throw new IllegalArgumentException("Operands must be I32Variable instances");
+    }
+
 }

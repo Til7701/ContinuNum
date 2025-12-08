@@ -9,6 +9,7 @@ public class Java {
         if (clazz == Integer.class || clazz == I32.class) return I32.instance();
         if (clazz == String.class || clazz == Str.class) return Str.instance();
         if (clazz == Void.class || clazz.getSimpleName().equals("void") || clazz == None.class) return None.instance();
+        if (clazz == Boolean.class || clazz == Bool.class) return Bool.instance();
         if (clazz == Object.class || clazz == Any.class) return Any.instance();
         throw new UnsupportedOperationException("Unsupported type: " + clazz.getName());
     }

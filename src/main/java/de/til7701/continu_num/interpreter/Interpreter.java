@@ -3,6 +3,7 @@ package de.til7701.continu_num.interpreter;
 import de.til7701.continu_num.core.ast.*;
 import de.til7701.continu_num.core.environment.Environment;
 import de.til7701.continu_num.core.reflect.*;
+import de.til7701.continu_num.interpreter.variables.BoolVariable;
 import de.til7701.continu_num.interpreter.variables.I32Variable;
 import de.til7701.continu_num.interpreter.variables.StrVariable;
 
@@ -17,14 +18,15 @@ public class Interpreter {
     private final KlassRegister klassRegister;
     private final OperationsRegister operationsRegister;
 
-    private final Context context = new Context();
+    private final ContextStack context = new ContextStack();
 
     public Interpreter(Environment environment) {
         this.klassRegister = environment.getKlassRegister();
         this.operationsRegister = environment.getOperationsRegister();
     }
 
-    public void interpret(ContinuNumFile ast) {
+    public void interpret(Ast ast) {
+        context.push(new Context());
         for (Instruction instruction : ast.instructions()) {
             execute(instruction);
         }
@@ -35,6 +37,25 @@ public class Interpreter {
             case SymbolInitialization symbolInitialization -> executeSymbolInitialization(symbolInitialization);
             case MethodCall methodCall -> executeMethodCall(methodCall);
             case Assignment assignment -> executeAssignment(assignment);
+            case InstructionList instructionList -> {
+                context.push(new Context());
+                for (Instruction instr : instructionList.instructions()) {
+                    execute(instr);
+                }
+                context.pop();
+            }
+            case WhileStatement whileStatement -> {
+                while (true) {
+                    Variable conditionValue = evaluateExpression(whileStatement.condition());
+                    if (!(conditionValue instanceof BoolVariable boolVar)) {
+                        throw new RuntimeException("While condition must evaluate to a Bool");
+                    }
+                    if (!boolVar.value()) {
+                        break;
+                    }
+                    execute(whileStatement.body());
+                }
+            }
         }
     }
 
@@ -70,7 +91,7 @@ public class Interpreter {
             if (!previousValue.type().equals(value.type())) { // avoid with strict types and explicit casts with new language feature
                 value = variableFactory.cast(value, previousValue.type());
             }
-            context.initializeVariable(name, value.asMutable());
+            context.updateVariable(name, value.asMutable());
         } else {
             throw new RuntimeException("Variable " + name + " is not mutable");
         }

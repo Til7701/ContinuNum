@@ -12,15 +12,16 @@ public class TypeChecker {
     private final OperationsRegister operationsRegister;
     private final KlassRegister klassRegister;
 
-    private Context context;
+    private ContextStack context;
 
     public TypeChecker(Environment environment) {
         this.operationsRegister = environment.getOperationsRegister();
         this.klassRegister = environment.getKlassRegister();
     }
 
-    public void check(ContinuNumFile ast) {
-        context = new Context();
+    public void check(Ast ast) {
+        context = new ContextStack();
+        context.push(new Context());
 
         List<Instruction> instructions = ast.instructions();
         for (Instruction instruction : instructions) {
@@ -33,6 +34,19 @@ public class TypeChecker {
             case SymbolInitialization symbolInitialization -> checkSymbolInitialization(symbolInitialization);
             case MethodCall methodCall -> checkMethodCall(methodCall);
             case Assignment assignment -> checkAssignment(assignment);
+            case InstructionList instructionList -> {
+                context.push(new Context());
+                instructionList.instructions().forEach(this::check);
+                context.pop();
+            }
+            case WhileStatement whileStatement -> {
+                Expression condition = whileStatement.condition();
+                Type conditionType = evaluateExpressionType(condition);
+                if (!conditionType.equals(Bool.instance())) {
+                    throw new RuntimeException("Type mismatch: while condition must be of type Bool, but found " + conditionType);
+                }
+                check(whileStatement.body());
+            }
         }
     }
 
@@ -77,14 +91,14 @@ public class TypeChecker {
             case IntegerLiteralExpression _ -> I32.instance();
             case StringLiteralExpression _ -> Str.instance();
             case MethodCall methodCall -> checkMethodCall(methodCall);
-            case BinaryExpression binaryExpression -> {
-                Type leftType = evaluateExpressionType(binaryExpression.left());
-                Type rightType = evaluateExpressionType(binaryExpression.right());
+            case BinaryExpression(Expression left, BinaryOperator operator, Expression right) -> {
+                Type leftType = evaluateExpressionType(left);
+                Type rightType = evaluateExpressionType(right);
                 Operation operation = operationsRegister.getBinaryOperation(
-                        binaryExpression.operator(), leftType, rightType).orElseThrow();
+                        operator, leftType, rightType).orElseThrow();
                 yield operation.resultType();
             }
-            case SymbolExpression symbolExpression -> context.getVariable(symbolExpression.identifier());
+            case SymbolExpression(String identifier) -> context.getVariable(identifier);
         };
     }
 

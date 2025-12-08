@@ -14,31 +14,83 @@ import java.util.Optional;
 public class Walker extends ContinuNumParserBaseVisitor<Node> {
 
     @Override
-    public ContinuNumFile visitCompilationUnit(ContinuNumParser.CompilationUnitContext ctx) {
+    public Ast visitCompilationUnit(ContinuNumParser.CompilationUnitContext ctx) {
         CommandLine.tracer().debug("Visiting CompilationUnit %s", ctx.getText());
 
         List<Instruction> instructions = ctx.statement().stream()
                 .map(statementContext -> (Instruction) visit(statementContext))
                 .toList();
 
-        return new ContinuNumFile(
+        return new Ast(
                 instructions
         );
     }
 
     @Override
-    public Node visitStatement(ContinuNumParser.StatementContext ctx) {
-        CommandLine.tracer().debug("Visiting Statement %s", ctx.getText());
+    public Node visitStatementList(ContinuNumParser.StatementListContext ctx) {
+        List<Instruction> instructions = ctx.statement().stream()
+                .map(statementContext -> (Instruction) visit(statementContext))
+                .toList();
+        return new InstructionList(instructions);
+    }
 
-        if (ctx.methodCall() != null) {
-            return visit(ctx.methodCall());
-        } else if (ctx.symbolDefinition() != null) {
-            return visit(ctx.symbolDefinition());
-        } else if (ctx.assignment() != null) {
-            return visit(ctx.assignment());
-        } else {
-            throw new ParserException("Unknown statement type: " + ctx.getText());
-        }
+    @Override
+    public Node visitExpressionStatement(ContinuNumParser.ExpressionStatementContext ctx) {
+        return visit(ctx.expression());
+    }
+
+    @Override
+    public Node visitWhileStatement(ContinuNumParser.WhileStatementContext ctx) {
+        Expression condition = (Expression) visit(ctx.expression());
+        Instruction body = (Instruction) visit(ctx.statement());
+        return new WhileStatement(
+                condition,
+                body
+        );
+    }
+
+    @Override
+    public Node visitCollectionAccess(ContinuNumParser.CollectionAccessContext ctx) {
+        Expression collection = (Expression) visit(ctx.expression(0));
+        Expression index = (Expression) visit(ctx.expression(1));
+        return new BinaryExpression(
+                collection,
+                BinaryOperator.COLLECTION_ACCESS,
+                index
+        );
+    }
+
+    @Override
+    public Node visitStaticMethodCall(ContinuNumParser.StaticMethodCallContext ctx) {
+        Optional<String> typeName = Optional.ofNullable(ctx.typeIdentifier()).map(ParseTree::getText);
+        String methodName = ctx.SymbolIdentifier().getText();
+        List<Expression> arguments = ctx.expression().stream()
+                .map(expressionContext -> (Expression) visit(expressionContext))
+                .toList();
+
+        return new MethodCall(typeName, methodName, arguments);
+    }
+
+    @Override
+    public Node visitParenExpression(ContinuNumParser.ParenExpressionContext ctx) {
+        return visit(ctx.expression());
+    }
+
+    @Override
+    public Node visitBinaryOperationExpression(ContinuNumParser.BinaryOperationExpressionContext ctx) {
+        Expression left = (Expression) visit(ctx.expression(0));
+        Expression right = (Expression) visit(ctx.expression(1));
+        String operator = ctx.binaryOperator().getText();
+        return new BinaryExpression(
+                left,
+                BinaryOperator.fromString(operator),
+                right
+        );
+    }
+
+    @Override
+    public Node visitInstanceMethodCall(ContinuNumParser.InstanceMethodCallContext ctx) {
+        return super.visitInstanceMethodCall(ctx);
     }
 
     @Override
@@ -57,54 +109,6 @@ public class Walker extends ContinuNumParserBaseVisitor<Node> {
                 name,
                 expression
         );
-    }
-
-    @Override
-    public Node visitMethodCall(ContinuNumParser.MethodCallContext ctx) {
-        CommandLine.tracer().debug("Visiting MethodCall %s", ctx.getText());
-
-        Optional<String> typeName = Optional.ofNullable(ctx.typeIdentifier()).map(ParseTree::getText);
-        String methodName = ctx.SymbolIdentifier().getText();
-        List<Expression> arguments = ctx.expression().stream()
-                .map(expressionContext -> (Expression) visit(expressionContext))
-                .toList();
-
-        return new MethodCall(typeName, methodName, arguments);
-    }
-
-    @Override
-    public Node visitExpression(ContinuNumParser.ExpressionContext ctx) {
-        CommandLine.tracer().debug("Visiting Expression %s", ctx.getText());
-
-        if (ctx.literalExpression() != null) {
-            return visit(ctx.literalExpression());
-        } else if (ctx.symbolIdentifierExpression() != null) {
-            return visit(ctx.symbolIdentifierExpression());
-        } else if (ctx.methodCall() != null) {
-            return visit(ctx.methodCall());
-        } else if (ctx.expression() != null) {
-            if (ctx.expression().size() == 1) {
-                return visit(ctx.expression(0));
-            } else if (ctx.expression().size() == 2 && ctx.binaryOperator() != null) {
-                Expression left = (Expression) visit(ctx.expression(0));
-                Expression right = (Expression) visit(ctx.expression(1));
-                String operator = ctx.getChild(1).getText();
-                return new BinaryExpression(
-                        left,
-                        BinaryOperator.fromString(operator),
-                        right
-                );
-            } else if (ctx.expression().size() == 2 && ctx.getChild(1).getText().equals("[")
-                    && ctx.getChild(3).getText().equals("]")) {
-                Expression collection = (Expression) visit(ctx.expression(0));
-                Expression index = (Expression) visit(ctx.expression(1));
-                return new BinaryExpression(collection, BinaryOperator.COLLECTION_ACCESS, index);
-            } else {
-                throw new ParserException("Unsupported expression format: " + ctx.getText());
-            }
-        } else {
-            throw new ParserException("Unknown expression type: " + ctx.getText());
-        }
     }
 
     @Override

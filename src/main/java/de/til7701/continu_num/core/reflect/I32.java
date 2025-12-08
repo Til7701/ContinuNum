@@ -28,6 +28,9 @@ public non-sealed interface I32 extends Type {
     @BinaryOp(operator = BinaryOperator.DIVIDE)
     I32 div(I32 a, I32 b);
 
+    @BinaryOp(operator = BinaryOperator.LT)
+    Bool lt(I32 a, I32 b);
+
     static I32 instance() {
         return Impl.INSTANCE;
     }
@@ -66,6 +69,11 @@ public non-sealed interface I32 extends Type {
 
         @Override
         public I32 div(I32 a, I32 b) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Bool lt(I32 a, I32 b) {
             throw new UnsupportedOperationException();
         }
 

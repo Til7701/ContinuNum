@@ -14,6 +14,7 @@ public class Environment {
             I16.class,
             I32.class,
             Str.class,
+            Bool.class,
             None.class,
             Any.class,
     };

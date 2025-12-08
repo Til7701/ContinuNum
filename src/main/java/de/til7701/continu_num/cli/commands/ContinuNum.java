@@ -2,7 +2,7 @@ package de.til7701.continu_num.cli.commands;
 
 import de.til7701.continu_num.cli.VersionProvider;
 import de.til7701.continu_num.cli.mixins.DebugMixin;
-import de.til7701.continu_num.core.ast.ContinuNumFile;
+import de.til7701.continu_num.core.ast.Ast;
 import de.til7701.continu_num.core.environment.Environment;
 import de.til7701.continu_num.core.parser.FileParser;
 import de.til7701.continu_num.core.type_checker.TypeChecker;
@@ -33,7 +33,7 @@ public class ContinuNum implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         FileParser fileParser = new FileParser();
-        ContinuNumFile ast = fileParser.parse(source);
+        Ast ast = fileParser.parse(source);
         final Environment env = new Environment();
         TypeChecker typeChecker = new TypeChecker(env);
         typeChecker.check(ast);

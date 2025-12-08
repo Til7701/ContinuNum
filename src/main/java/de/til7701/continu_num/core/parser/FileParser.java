@@ -3,7 +3,7 @@ package de.til7701.continu_num.core.parser;
 import de.holube.continu_num.parser.ContinuNumLexer;
 import de.holube.continu_num.parser.ContinuNumParser;
 import de.holube.continu_num.parser.ContinuNumParserBaseVisitor;
-import de.til7701.continu_num.core.ast.ContinuNumFile;
+import de.til7701.continu_num.core.ast.Ast;
 import de.til7701.continu_num.core.ast.Node;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -16,7 +16,7 @@ import java.io.IOException;
 
 public class FileParser {
 
-    public ContinuNumFile parse(File file) throws IOException {
+    public Ast parse(File file) throws IOException {
         CharStream charStream = CharStreams.fromFileName(file.getAbsolutePath());
         ContinuNumLexer lexer = new ContinuNumLexer(charStream);
         CommonTokenStream commonTokenStream = new CommonTokenStream(lexer);
@@ -27,7 +27,7 @@ public class FileParser {
 
         ParseTree cst = parser.compilationUnit();
         ContinuNumParserBaseVisitor<Node> listener = new Walker();
-        return (ContinuNumFile) listener.visit(cst);
+        return (Ast) listener.visit(cst);
     }
 
 }

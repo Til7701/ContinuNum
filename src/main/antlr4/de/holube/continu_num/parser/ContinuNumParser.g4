@@ -7,24 +7,21 @@ options {
 compilationUnit : statement* EOF;
 
 statement
-    : symbolDefinition SEMI
-    | assignment SEMI
-    | staticMethodCall SEMI
-    | whileStatement
-    ;
-
-symbolDefinition
-    : MUT? typeIdentifier SymbolIdentifier ASSIGN expression
+    : LBRACE statement* RBRACE #statementList
+    | MUT? typeIdentifier SymbolIdentifier ASSIGN expression SEMI #symbolDefinition
+    | SymbolIdentifier ASSIGN expression SEMI #assignment
+    | expression SEMI #expressionStatement
+    | WHILE expression statement #whileStatement
     ;
 
 expression
-    : literalExpression
-    | symbolIdentifierExpression
-    | staticMethodCall
-    | expression binaryOperator expression
-    | LPAREN expression RPAREN
-    | expression LBRACK expression RBRACK // collection access
-    | ARRAY LBRACE (expression (COMMA expression)*)? RBRACE // 1D array initializer
+    : (IntegerLiteral | StringLiteral | BooleanLiteral) #literalExpression
+    | SymbolIdentifier #symbolIdentifierExpression
+    | typeIdentifier DOT SymbolIdentifier LPAREN (expression (COMMA expression)*)? RPAREN #staticMethodCall
+    | expression DOT SymbolIdentifier LPAREN (expression (COMMA expression)*)? RPAREN #instanceMethodCall
+    | expression binaryOperator expression #binaryOperationExpression
+    | LPAREN expression RPAREN #parenExpression
+    | expression LBRACK expression RBRACK #collectionAccess
     ;
 
 binaryOperator
@@ -43,26 +40,4 @@ binaryOperator
 typeIdentifier
     : TypeIdentifier
     | typeIdentifier LBRACK RBRACK
-    ;
-
-literalExpression
-    : IntegerLiteral
-    | StringLiteral
-    | BooleanLiteral
-    ;
-
-symbolIdentifierExpression
-    : SymbolIdentifier
-    ;
-
-assignment
-    : SymbolIdentifier ASSIGN expression
-    ;
-
-staticMethodCall
-    : (typeIdentifier | expression) DOT SymbolIdentifier LPAREN (expression (COMMA expression)*)? RPAREN
-    ;
-
-whileStatement
-    : WHILE expression LBRACE statement* RBRACE
     ;

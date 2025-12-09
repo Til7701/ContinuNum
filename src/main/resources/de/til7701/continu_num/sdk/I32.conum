@@ -1,0 +1,29 @@
+native class;
+
+public static I32 minValue() {
+    return -2147483648;
+}
+
+public static I32 maxValue() {
+    return 2147483647;
+}
+
+@BinaryOp(operator = BinaryOperator.ADD)
+public static native I32 add(I32 a, I32 b) {
+    return a + b;
+}
+
+@BinaryOp(operator = BinaryOperator.SUBTRACT)
+public static native I32 subtract(I32 a, I32 b) {
+    return a - b;
+}
+
+@BinaryOp(operator = BinaryOperator.MULTIPLY)
+public static native I32 multiply(I32 a, I32 b) {
+    return a * b;
+}
+
+@BinaryOp(operator = BinaryOperator.DIVIDE)
+public static native I32 divide(I32 a, I32 b) {
+    return a / b;
+}

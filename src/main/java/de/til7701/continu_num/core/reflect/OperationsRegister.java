@@ -2,6 +2,7 @@ package de.til7701.continu_num.core.reflect;
 
 import de.til7701.continu_num.core.ast.BinaryOperator;
 import de.til7701.continu_num.core.util.Java;
+import picocli.CommandLine;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -50,6 +51,7 @@ public class OperationsRegister {
                 .computeIfAbsent(operator, _ -> new HashMap<>())
                 .computeIfAbsent(ops.leftType(), _ -> new HashMap<>())
                 .put(ops.rightType(), ops);
+        CommandLine.tracer().debug("Registered binary operation: " + operator + " for types " + ops.leftType() + ", " + ops.rightType() + " -> " + ops.resultType());
     }
 
     public Optional<Operation> getBinaryOperation(BinaryOperator operator, Type leftType, Type rightType) {

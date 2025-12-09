@@ -1,9 +1,22 @@
 lexer grammar ContinuNumLexer;
 
 MUT: 'mut';
-MEW: 'mew';
-ARRAY: 'array';
 WHILE: 'while';
+STATIC: 'static';
+NATIVE: 'native';
+CLASS: 'class';
+ENUM: 'enum';
+ANNOTATION: 'annotation';
+RETURN: 'return';
+PUBLIC: 'public';
+PRIVATE: 'private';
+GET: 'get';
+SET: 'set';
+IF: 'if';
+ELSE: 'else';
+FOR: 'for';
+AS: 'as';
+EXTENDS: 'extends';
 
 LPAREN : '(';
 RPAREN : ')';
@@ -28,6 +41,7 @@ GE         : '>=';
 NOTEQUAL   : '!=';
 AND        : '&&';
 OR         : '||';
+HASH       : '#';
 INC        : '++';
 DEC        : '--';
 ADD        : '+';
@@ -50,12 +64,14 @@ OR_ASSIGN      : '|=';
 XOR_ASSIGN     : '^=';
 MOD_ASSIGN     : '%=';
 
+AT : '@';
+
 IntegerLiteral : [0-9]+;
 StringLiteral : '"' ( ~["\\] | '\\' . )* '"';
 BooleanLiteral : 'true' | 'false';
 
-TypeIdentifier: [A-Z][a-zA-Z_0-9]* | PRIMITIVE;
-PRIMITIVE: 'i8' | 'i16' | 'i32' | 'i64' | 'f32' | 'f64' | 'bool' | 'str' | 'char';
+EnumValueIdentifier : [A-Z][A-Z_]*;
+TypeIdentifier: [A-Z][a-zA-Z0-9]*;
 SymbolIdentifier : [a-z][a-zA-Z_0-9]*;
 
 WS: [ \t\r\n\u000C]+ -> skip;

@@ -13,6 +13,7 @@ public class VariableFactory {
             case Str _ -> new StrVariable(variable.isMutable(), variable.value());
             case Bool _ -> new BoolVariable(variable.isMutable(), variable.value());
             case Any _ -> new AnyVariable(variable.isMutable(), variable.value());
+            case Collection _ -> new CollectionVariable(variable.isMutable(), variable.value());
         };
     }
 
@@ -24,6 +25,7 @@ public class VariableFactory {
             case Str _ -> new StrVariable(false, result);
             case Bool _ -> new BoolVariable(false, result);
             case Any _ -> new AnyVariable(false, result);
+            case Collection _ -> new CollectionVariable(false, result);
         };
     }
 }

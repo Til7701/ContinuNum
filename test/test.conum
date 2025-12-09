@@ -19,8 +19,8 @@ IO.println(a);
 
 IO.println(b[2]);
 
-//i32[] arr = array{1, 2, 3, 4, 5};
-//IO.println(arr);
+i32[] arr = [1, 2, 3, 4, 5];
+IO.println(arr[2]);
 
 mut i32 i = 0;
 while i < 5 {

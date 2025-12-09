@@ -4,11 +4,13 @@ import de.til7701.continu_num.core.ast.*;
 import de.til7701.continu_num.core.environment.Environment;
 import de.til7701.continu_num.core.reflect.*;
 import de.til7701.continu_num.interpreter.variables.BoolVariable;
+import de.til7701.continu_num.interpreter.variables.CollectionVariable;
 import de.til7701.continu_num.interpreter.variables.I32Variable;
 import de.til7701.continu_num.interpreter.variables.StrVariable;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 
 public class Interpreter {
 
@@ -35,7 +37,7 @@ public class Interpreter {
     private void execute(Instruction instruction) {
         switch (instruction) {
             case SymbolInitialization symbolInitialization -> executeSymbolInitialization(symbolInitialization);
-            case MethodCall methodCall -> executeMethodCall(methodCall);
+            case StaticMethodCall staticMethodCall -> executeStaticMethodCall(staticMethodCall);
             case Assignment assignment -> executeAssignment(assignment);
             case InstructionList instructionList -> {
                 context.push(new Context());
@@ -56,6 +58,7 @@ public class Interpreter {
                     execute(whileStatement.body());
                 }
             }
+            case InstanceMethodCall instanceMethodCall -> executeInstanceMethodCall(instanceMethodCall);
         }
     }
 
@@ -97,12 +100,12 @@ public class Interpreter {
         }
     }
 
-    private Variable executeMethodCall(MethodCall methodCall) {
-        if (methodCall.typeName().isPresent()) {
-            String typeName = methodCall.typeName().get();
-            String methodName = methodCall.methodName();
+    private Variable executeStaticMethodCall(StaticMethodCall staticMethodCall) {
+        if (staticMethodCall.typeName().isPresent()) {
+            String typeName = staticMethodCall.typeName().get();
+            String methodName = staticMethodCall.methodName();
             Klass klass = klassRegister.getKlass(typeName).orElseThrow();
-            Variable[] args = methodCall.arguments().stream()
+            Variable[] args = staticMethodCall.arguments().stream()
                     .map(this::evaluateExpression)
                     .toArray(Variable[]::new);
 
@@ -132,12 +135,46 @@ public class Interpreter {
         return null;
     }
 
+    private Variable executeInstanceMethodCall(InstanceMethodCall instanceMethodCall) {
+        Expression instanceExpr = instanceMethodCall.instance();
+        Variable instanceVar = evaluateExpression(instanceExpr);
+        String methodName = instanceMethodCall.methodName();
+        Variable[] args = instanceMethodCall.arguments().stream()
+                .map(this::evaluateExpression)
+                .toArray(Variable[]::new);
+
+        Type instanceType = instanceVar.type();
+        Klass klass = klassRegister.getKlass(instanceType.toString()).orElseThrow();
+        Type[] argTypes = Arrays.stream(args)
+                .map(Variable::type)
+                .toArray(Type[]::new);
+        Metod metod = klass.getMethod(methodName, argTypes).orElseThrow();
+
+        if (metod instanceof JavaMetod javaMetod) {
+            try {
+                Object[] javaArgs = new Object[args.length];
+                for (int i = 0; i < args.length; i++) {
+                    javaArgs[i] = args[i].value();
+                }
+
+                Class<?> declaringClass = javaMetod.javaClass();
+                Method method = declaringClass.getDeclaredMethod(methodName, javaMetod.javaParameterClasses());
+                Object result = method.invoke(instanceVar, javaArgs);
+                Type returnType = javaMetod.returnType();
+                return variableFactory.createVariableFromJavaObject(returnType, result);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to invoke method " + methodName + " of class " + instanceType, e);
+            }
+        }
+        return null;
+    }
+
     private Variable evaluateExpression(Expression expression) {
         return switch (expression) {
             case BooleanLiteralExpression _ -> throw new UnsupportedOperationException();
             case IntegerLiteralExpression(String value) -> new I32Variable(Integer.parseInt(value));
             case StringLiteralExpression(String value) -> new StrVariable(value);
-            case MethodCall methodCall -> executeMethodCall(methodCall);
+            case StaticMethodCall staticMethodCall -> executeStaticMethodCall(staticMethodCall);
             case SymbolExpression(String identifier) -> context.getVariable(identifier);
             case BinaryExpression(Expression left, BinaryOperator operator, Expression right) -> {
                 Variable leftValue = evaluateExpression(left);
@@ -150,6 +187,12 @@ public class Interpreter {
                         " not found for types " + leftValue.type() + " and " + rightValue.type()));
                 yield operations.invokeBinary(operation, leftValue, rightValue);
             }
+            case InstanceMethodCall instanceMethodCall -> executeInstanceMethodCall(instanceMethodCall);
+            case CollectionCreationExpression(List<Expression> elements) -> new CollectionVariable(false,
+                    elements.stream()
+                            .map(this::evaluateExpression)
+                            .toList()
+            );
         };
     }
 

@@ -1,6 +1,6 @@
 package de.til7701.continu_num.core.reflect;
 
-public sealed interface Type permits Any, Bool, I16, I32, None, Str {
+public sealed interface Type permits Any, Bool, Collection, I16, I32, None, Str {
 
     boolean isAssignableFrom(Type other);
 
@@ -11,6 +11,7 @@ public sealed interface Type permits Any, Bool, I16, I32, None, Str {
             case "str" -> Str.instance();
             case "bool" -> Bool.instance();
             case "none" -> None.instance();
+            case "i32[]" -> Collection.instance(I32.instance(), Any.instance());
             default -> throw new IllegalArgumentException("Unknown type name: " + name);
         };
     }

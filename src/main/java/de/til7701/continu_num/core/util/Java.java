@@ -11,6 +11,17 @@ public class Java {
         if (clazz == Void.class || clazz.getSimpleName().equals("void") || clazz == None.class) return None.instance();
         if (clazz == Boolean.class || clazz == Bool.class) return Bool.instance();
         if (clazz == Object.class || clazz == Any.class) return Any.instance();
+        if (clazz.isArray()) {
+            Class<?> componentType = clazz.getComponentType();
+            Type elementType = mapTypes(componentType);
+            return Collection.instance(elementType, Any.instance());
+        }
+        if (clazz == Collection.class) {
+            return Collection.instance(Any.instance(), Any.instance());
+        }
+        if (clazz == Type.class) {
+            return Any.instance();
+        }
         throw new UnsupportedOperationException("Unsupported type: " + clazz.getName());
     }
 

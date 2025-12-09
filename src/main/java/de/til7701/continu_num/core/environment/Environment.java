@@ -17,6 +17,7 @@ public class Environment {
             Bool.class,
             None.class,
             Any.class,
+            Collection.class,
     };
 
     private final OperationsRegister operationsRegister = new OperationsRegister();

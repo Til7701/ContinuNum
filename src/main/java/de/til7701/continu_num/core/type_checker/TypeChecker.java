@@ -32,7 +32,7 @@ public class TypeChecker {
     private void check(Instruction instruction) {
         switch (instruction) {
             case SymbolInitialization symbolInitialization -> checkSymbolInitialization(symbolInitialization);
-            case MethodCall methodCall -> checkMethodCall(methodCall);
+            case StaticMethodCall staticMethodCall -> checkStaticMethodCall(staticMethodCall);
             case Assignment assignment -> checkAssignment(assignment);
             case InstructionList instructionList -> {
                 context.push(new Context());
@@ -47,6 +47,7 @@ public class TypeChecker {
                 }
                 check(whileStatement.body());
             }
+            case InstanceMethodCall instanceMethodCall -> checkInstanceMethodCall(instanceMethodCall);
         }
     }
 
@@ -58,15 +59,15 @@ public class TypeChecker {
         }
     }
 
-    private Type checkMethodCall(MethodCall methodCall) {
-        Klass klass = klassRegister.getKlass(methodCall.typeName().orElseThrow()).orElseThrow();
+    private Type checkStaticMethodCall(StaticMethodCall staticMethodCall) {
+        Klass klass = klassRegister.getKlass(staticMethodCall.typeName().orElseThrow()).orElseThrow();
 
-        Type[] parameterTypes = methodCall.arguments().stream()
+        Type[] parameterTypes = staticMethodCall.arguments().stream()
                 .map(this::evaluateExpressionType)
                 .toArray(Type[]::new);
 
-        Metod metod = klass.getMethod(methodCall.methodName(), parameterTypes).orElseThrow(() ->
-                new RuntimeException("Method " + methodCall.methodName() + "(" + String.join(", ", Arrays.stream(parameterTypes)
+        Metod metod = klass.getMethod(staticMethodCall.methodName(), parameterTypes).orElseThrow(() ->
+                new RuntimeException("Method " + staticMethodCall.methodName() + "(" + String.join(", ", Arrays.stream(parameterTypes)
                         .map(Type::toString)
                         .toArray(String[]::new)) + ") not found in class " + klass.name())
         );
@@ -75,6 +76,28 @@ public class TypeChecker {
         }
         return metod.returnType();
     }
+
+    private Type checkInstanceMethodCall(InstanceMethodCall instanceMethodCall) {
+        Expression instance = instanceMethodCall.instance();
+        String methodName = instanceMethodCall.methodName();
+        List<Expression> arguments = instanceMethodCall.arguments();
+
+        Type instanceType = evaluateExpressionType(instance);
+        Klass klass = klassRegister.getKlass(instanceType.toString()).orElseThrow();
+        Type[] parameterTypes = arguments.stream()
+                .map(this::evaluateExpressionType)
+                .toArray(Type[]::new);
+        Metod metod = klass.getMethod(methodName, parameterTypes).orElseThrow(() ->
+                new RuntimeException("Method " + methodName + "(" + String.join(", ", Arrays.stream(parameterTypes)
+                        .map(Type::toString)
+                        .toArray(String[]::new)) + ") not found in class " + klass.name())
+        );
+        if (!(metod instanceof JavaMetod)) {
+            throw new UnsupportedOperationException();
+        }
+        return metod.returnType();
+    }
+
 
     private void checkSymbolInitialization(SymbolInitialization symbolInitialization) {
         Type symbolType = symbolInitialization.type();
@@ -90,15 +113,31 @@ public class TypeChecker {
             case BooleanLiteralExpression _ -> throw new UnsupportedOperationException();
             case IntegerLiteralExpression _ -> I32.instance();
             case StringLiteralExpression _ -> Str.instance();
-            case MethodCall methodCall -> checkMethodCall(methodCall);
+            case StaticMethodCall staticMethodCall -> checkStaticMethodCall(staticMethodCall);
             case BinaryExpression(Expression left, BinaryOperator operator, Expression right) -> {
                 Type leftType = evaluateExpressionType(left);
                 Type rightType = evaluateExpressionType(right);
-                Operation operation = operationsRegister.getBinaryOperation(
-                        operator, leftType, rightType).orElseThrow();
+                Operation operation = operationsRegister.getBinaryOperation(operator, leftType, rightType)
+                        .orElseThrow(() -> new RuntimeException("Operation " + operator +
+                                " not found for types " + leftType + " and " + rightType));
                 yield operation.resultType();
             }
             case SymbolExpression(String identifier) -> context.getVariable(identifier);
+            case InstanceMethodCall instanceMethodCall -> checkInstanceMethodCall(instanceMethodCall);
+            case CollectionCreationExpression(List<Expression> elements) -> {
+                if (elements.isEmpty()) {
+                    yield Any.instance();
+                }
+                Type indexType = I32.instance();
+                Type elementType = evaluateExpressionType(elements.getFirst());
+                for (Expression element : elements) {
+                    Type currentType = evaluateExpressionType(element);
+                    if (!elementType.equals(currentType)) {
+                        throw new RuntimeException("Type mismatch in collection elements: expected " + elementType + " but found " + currentType);
+                    }
+                }
+                yield Collection.instance(indexType, elementType);
+            }
         };
     }
 

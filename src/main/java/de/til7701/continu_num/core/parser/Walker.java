@@ -68,7 +68,7 @@ public class Walker extends ContinuNumParserBaseVisitor<Node> {
                 .map(expressionContext -> (Expression) visit(expressionContext))
                 .toList();
 
-        return new MethodCall(typeName, methodName, arguments);
+        return new StaticMethodCall(typeName, methodName, arguments);
     }
 
     @Override
@@ -89,8 +89,26 @@ public class Walker extends ContinuNumParserBaseVisitor<Node> {
     }
 
     @Override
+    public Node visitCollectionCreation(ContinuNumParser.CollectionCreationContext ctx) {
+        List<Expression> elements = ctx.expression().stream()
+                .map(expressionContext -> (Expression) visit(expressionContext))
+                .toList();
+        return new CollectionCreationExpression(elements);
+    }
+
+    @Override
     public Node visitInstanceMethodCall(ContinuNumParser.InstanceMethodCallContext ctx) {
-        return super.visitInstanceMethodCall(ctx);
+        Expression instance = (Expression) visit(ctx.expression(0));
+        String methodName = ctx.SymbolIdentifier().getText();
+        List<Expression> arguments = ctx.expression().subList(1, ctx.expression().size()).stream()
+                .map(expressionContext -> (Expression) visit(expressionContext))
+                .toList();
+
+        return new InstanceMethodCall(
+                instance,
+                methodName,
+                arguments
+        );
     }
 
     @Override

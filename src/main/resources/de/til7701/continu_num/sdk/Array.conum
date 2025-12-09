@@ -1,0 +1,23 @@
+native class<I, E>;
+
+@BinaryOp(operator = BinaryOperator.COLLECTION_READ)
+pub static native E elementAt(Array array, I index) {
+    return array[index];
+}
+
+@BinaryOp(operator = BinaryOperator.COLLECTION_WRITE)
+pub static native elementAt(Array array, I index, E value) {
+    array[index] = value;
+}
+
+@BinaryOp(operator = BinaryOperator.ADD)
+pub static Array<I, E> concat(Array<I, E> a, Array<I, E> b) {
+    Array<I, E> newArray = Array<I, E>(a.size() + b.size());
+    for mut I i = 0; i < a.size(); i++ {
+        newArray[i] = a[i];
+    }
+    for mut I j = 0; j < b.size(); j++ {
+        newArray[a.size() + j] = b[j];
+    }
+    return newArray;
+}

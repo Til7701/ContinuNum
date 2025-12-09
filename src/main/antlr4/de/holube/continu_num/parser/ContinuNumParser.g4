@@ -12,7 +12,7 @@ statement
     | expression ASSIGN expression SEMI #assignment
     | expression SEMI #expressionStatement
     | WHILE expression statement #whileStatement
-    | FOR (MUT? TypeIdentifier SymbolIdentifier ASSIGN expression)? SEMI expression? SEMI expression? LBRACE statement* RBRACE #forStatement
+    | FOR (MUT? typeIdentifier SymbolIdentifier ASSIGN expression)? SEMI expression? SEMI expression? LBRACE statement* RBRACE #forStatement
     | RETURN expression? SEMI #returnStatement
     ;
 
@@ -21,13 +21,13 @@ expression
     | SymbolIdentifier #symbolIdentifierExpression
     | typeIdentifier DOT SymbolIdentifier LPAREN (expression (COMMA expression)*)? RPAREN #staticMethodCall
     | expression DOT SymbolIdentifier LPAREN (expression (COMMA expression)*)? RPAREN #instanceMethodCall
-    | TypeIdentifier LPAREN (expression (COMMA expression)*)? RPAREN #constructorCall
+    | typeIdentifier LPAREN (expression (COMMA expression)*)? RPAREN #constructorCall
     | leftUnaryOperator expression #leftUnaryOperationExpression
     | expression rightUnaryOperator #rightUnaryOperationExpression
     | expression binaryOperator expression #binaryOperationExpression
     | LPAREN expression RPAREN #parenExpression
     | expression LBRACK expression RBRACK #collectionAccess
-    | TypeIdentifier LBRACK (expression (COMMA expression)*)? RBRACK #collectionCreation
+    | typeIdentifier LBRACK typeIdentifier SEMI (expression (COMMA expression)*)? RBRACK #collectionCreation
     | TypeIdentifier DOT EnumValueIdentifier #enumValueExpression
     ;
 
@@ -57,18 +57,20 @@ binaryOperator
     ;
 
 typeIdentifier
-    : TypeIdentifier
-    | typeIdentifier LBRACK RBRACK
+    : TypeIdentifier #simpleTypeIdentifier
+    | typeIdentifier LBRACK typeIdentifier RBRACK #collectionTypeIdentifier
+    | typeIdentifier LT (typeIdentifier (COMMA typeIdentifier)*) GT #genericTypeIdentifier
     ;
 
 typeDefinition
-    : typeModifier annotationTypeDefinition
-    | typeModifier enumTypeDefinition
-    | typeModifier classTypeDefinition
+    : typeModifier* annotationTypeDefinition
+    | typeModifier* enumTypeDefinition
+    | typeModifier* classTypeDefinition
     ;
 
 typeModifier
     : NATIVE
+    | PUB
     ;
 
 annotationTypeDefinition
@@ -84,36 +86,31 @@ enumTypeDefinition
     ;
 
 classTypeDefinition
-    : CLASS SEMI (EXTENDS TypeIdentifier (COMMA TypeIdentifier))? fieldDefinition* constructorDefinition* methodDefinition*
+    : CLASS (LT (typeIdentifier (COMMA typeIdentifier)*) GT)? SEMI (EXTENDS TypeIdentifier (COMMA TypeIdentifier)*)? fieldDefinition* constructorDefinition* methodDefinition*
     ;
 
 fieldDefinition
-    : fieldModifier* typeIdentifier SymbolIdentifier SEMI #uninitializedFieldDefinition
-    | fieldModifier* typeIdentifier SymbolIdentifier ASSIGN expression SEMI #initializedFieldDefinition
+    : annotation* fieldModifier* typeIdentifier SymbolIdentifier SEMI #uninitializedFieldDefinition
+    | annotation* fieldModifier* typeIdentifier SymbolIdentifier ASSIGN expression SEMI #initializedFieldDefinition
     ;
 
 fieldModifier
     : STATIC
     | MUT
-    | PUBLIC
-    | PRIVATE
-    | GET
-    | SET
     ;
 
 constructorDefinition
-    : methodModifier* TypeIdentifier LPAREN (parameter (COMMA parameter)*)? RPAREN statement
+    : annotation* methodModifier* LPAREN (parameter (COMMA parameter)*)? RPAREN statement
     ;
 
 methodDefinition
-    : annotation* methodModifier* TypeIdentifier? SymbolIdentifier LPAREN (parameter (COMMA parameter)*)? RPAREN (ARROW typeIdentifier)? statement
+    : annotation* methodModifier* typeIdentifier? SymbolIdentifier LPAREN (parameter (COMMA parameter)*)? RPAREN (ARROW typeIdentifier)? statement
     ;
 
 methodModifier
     : STATIC
     | NATIVE
-    | PUBLIC
-    | PRIVATE
+    | PUB
     ;
 
 parameter

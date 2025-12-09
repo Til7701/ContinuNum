@@ -1,29 +1,34 @@
 native class;
 
-public static I8 minValue() {
+@Default
+pub static I8 defaultValue() {
+    return 0;
+}
+
+pub static I8 minValue() {
     return -128;
 }
 
-public static I8 maxValue() {
+pub static I8 maxValue() {
     return 127;
 }
 
 @BinaryOp(operator = BinaryOperator.ADD)
-public static native I8 add(I8 a, I8 b) {
+pub static native I8 add(I8 a, I8 b) {
     return a + b;
 }
 
 @BinaryOp(operator = BinaryOperator.SUBTRACT)
-public static native I8 subtract(I8 a, I8 b) {
+pub static native I8 subtract(I8 a, I8 b) {
     return a - b;
 }
 
 @BinaryOp(operator = BinaryOperator.MULTIPLY)
-public static native I8 multiply(I8 a, I8 b) {
+pub static native I8 multiply(I8 a, I8 b) {
     return a * b;
 }
 
 @BinaryOp(operator = BinaryOperator.DIVIDE)
-public static native I8 divide(I8 a, I8 b) {
+pub static native I8 divide(I8 a, I8 b) {
     return a / b;
 }

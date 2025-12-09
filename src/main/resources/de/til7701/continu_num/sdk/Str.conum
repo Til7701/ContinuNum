@@ -1,29 +1,33 @@
 class;
 
-get
-private Char[] chars;
+@Getter
+Char[I32] chars;
 
-public Str() {
-    chars = Char[0];
+pub () {
+    chars = Array<I32, Char>();
 }
 
-public Str(Char[] chars) {
+pub (Char[I32] chars) {
     chars = chars;
 }
 
-@BinaryOp(operator = BinaryOperator.COLLECTION_ACCESS)
-public static Char charAt(Str s, I32 i) {
+@Default
+pub static Str defaultValue() {
+    return "";
+}
+
+@BinaryOp(operator = BinaryOperator.COLLECTION_READ)
+pub static Char charAt(Str s, I32 i) {
     return s.chars()[i];
 }
 
+@BinaryOp(operator = BinaryOperator.COLLECTION_WRITE)
+pub static charAt(Str s, I32 i, Char value) {
+    s.chars()[i] = value;
+}
+
 @BinaryOp(operator = BinaryOperator.ADD)
-public static Str concat(Str a, Str b) {
-    Char[] newChars = Char[a.chars().size() + b.chars().size()];
-    for mut I32 i = 0; i < a.chars().size(); i++ {
-        newChars[i] = a.chars()[i];
-    }
-    for mut I32 j = 0; j < b.chars().size(); j++ {
-        newChars[a.chars().size() + j] = b.chars()[j];
-    }
+pub static Str concat(Str a, Str b) {
+    Char[I32] newChars = a.chars() + b.chars();
     return Str(newChars);
 }

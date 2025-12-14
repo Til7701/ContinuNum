@@ -5,6 +5,9 @@ import de.til7701.javelin.ast.Script;
 import de.til7701.javelin.ast.Span;
 import de.til7701.javelin.ast.expression.*;
 import de.til7701.javelin.ast.statement.*;
+import de.til7701.javelin.ast.type.CollectionType;
+import de.til7701.javelin.ast.type.GenericType;
+import de.til7701.javelin.ast.type.SimpleType;
 import de.til7701.javelin.ast.type.Type;
 import de.til7701.javelin.parser.ParserException;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +15,8 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.jspecify.annotations.NullMarked;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -168,9 +173,11 @@ public class Walker extends JavelinParserBaseVisitor<Node> {
         List<Expression> args = ctx.expression().stream()
                 .map(c -> (Expression) visit(c))
                 .toList();
+        Optional<Type> type = Optional.ofNullable(ctx.typeIdentifier())
+                .map(t -> (Type) visit(t));
         return new StaticMethodCall(
                 createSpan(ctx),
-                Optional.of(ctx.typeIdentifier().getText()),
+                type,
                 ctx.SymbolIdentifier().getText(),
                 args
         );
@@ -191,7 +198,140 @@ public class Walker extends JavelinParserBaseVisitor<Node> {
 
     @Override
     public Node visitConstructorCall(JavelinParser.ConstructorCallContext ctx) {
-        
+        List<Expression> args = ctx.expression().subList(1, ctx.expression().size()).stream()
+                .map(c -> (Expression) visit(c))
+                .toList();
+        return new ConstructorCall(
+                createSpan(ctx),
+                (Type) visit(ctx.typeIdentifier()),
+                args
+        );
+    }
+
+    @Override
+    public Node visitLeftUnaryOperationExpression(JavelinParser.LeftUnaryOperationExpressionContext ctx) {
+        Span span = createSpan(ctx);
+        LeftUnaryOperator operator = switch (ctx.leftUnaryOperator().getText()) {
+            case "++" -> LeftUnaryOperator.INC;
+            case "--" -> LeftUnaryOperator.DEC;
+            case "-" -> LeftUnaryOperator.SUB;
+            case "!" -> LeftUnaryOperator.NOT;
+            case "#" -> LeftUnaryOperator.HASH;
+            default -> throw new ParserException(span, "Unexpected value: " + ctx.leftUnaryOperator().getText());
+        };
+        Expression expression = (Expression) visit(ctx.expression());
+        return new LeftUnaryExpression(
+                span,
+                operator,
+                expression
+        );
+    }
+
+    @Override
+    public Node visitRightUnaryOperationExpression(JavelinParser.RightUnaryOperationExpressionContext ctx) {
+        Span span = createSpan(ctx);
+        RightUnaryOperator operator = switch (ctx.rightUnaryOperator().getText()) {
+            case "++" -> RightUnaryOperator.INC;
+            case "--" -> RightUnaryOperator.DEC;
+            default -> throw new ParserException(span, "Unexpected value: " + ctx.rightUnaryOperator().getText());
+        };
+        Expression expression = (Expression) visit(ctx.expression());
+        return new RightUnaryExpression(
+                span,
+                expression,
+                operator
+        );
+    }
+
+    @Override
+    public Node visitBinaryOperationExpression(JavelinParser.BinaryOperationExpressionContext ctx) {
+        Span span = createSpan(ctx);
+        BinaryOperator operator = switch (ctx.binaryOperator().getText()) {
+            case "+" -> BinaryOperator.ADD;
+            case "-" -> BinaryOperator.SUBTRACT;
+            case "*" -> BinaryOperator.MULTIPLY;
+            case "/" -> BinaryOperator.DIVIDE;
+            case "==" -> BinaryOperator.EQ;
+            case "!=" -> BinaryOperator.NEQ;
+            case "<" -> BinaryOperator.LT;
+            case "<=" -> BinaryOperator.LTE;
+            case ">" -> BinaryOperator.GT;
+            case ">=" -> BinaryOperator.GTE;
+            default -> throw new ParserException(span, "Unexpected value: " + ctx.binaryOperator().getText());
+        };
+        Expression left = (Expression) visit(ctx.expression(0));
+        Expression right = (Expression) visit(ctx.expression(1));
+        return new BinaryExpression(
+                span,
+                left,
+                operator,
+                right
+        );
+    }
+
+    @Override
+    public Node visitParenExpression(JavelinParser.ParenExpressionContext ctx) {
+        return visit(ctx.expression());
+    }
+
+    @Override
+    public Node visitCollectionAccess(JavelinParser.CollectionAccessContext ctx) {
+        return new BinaryExpression(
+                createSpan(ctx),
+                (Expression) visit(ctx.expression(0)),
+                BinaryOperator.COLLECTION_ACCESS,
+                (Expression) visit(ctx.expression(1))
+        );
+    }
+
+    @Override
+    public Node visitEnumValueExpression(JavelinParser.EnumValueExpressionContext ctx) {
+        return new EnumValueAccess(
+                createSpan(ctx),
+                new SimpleType(
+                        createSpan(ctx),
+                        ctx.TypeIdentifier().getText()
+                ),
+                ctx.EnumValueIdentifier().getText()
+        );
+    }
+
+    @Override
+    public Node visitTypeCastExpression(JavelinParser.TypeCastExpressionContext ctx) {
+        return new TypeCastExpression(
+                createSpan(ctx),
+                (Type) visit(ctx.typeIdentifier()),
+                (Expression) visit(ctx.expression())
+        );
+    }
+
+    @Override
+    public Node visitSimpleTypeIdentifier(JavelinParser.SimpleTypeIdentifierContext ctx) {
+        return new SimpleType(
+                createSpan(ctx),
+                ctx.getText()
+        );
+    }
+
+    @Override
+    public Node visitCollectionTypeIdentifier(JavelinParser.CollectionTypeIdentifierContext ctx) {
+        return new CollectionType(
+                createSpan(ctx),
+                (Type) visit(ctx.typeIdentifier(1)),
+                (Type) visit(ctx.typeIdentifier(0))
+        );
+    }
+
+    @Override
+    public Node visitGenericTypeIdentifier(JavelinParser.GenericTypeIdentifierContext ctx) {
+        List<Type> typeArguments = new ArrayList<>();
+        for (int i = 1; i < ctx.typeIdentifier().size(); i++)
+            typeArguments.add((Type) visit(ctx.typeIdentifier(i)));
+        return new GenericType(
+                createSpan(ctx),
+                (Type) visit(ctx.typeIdentifier(0)),
+                Collections.unmodifiableList(typeArguments)
+        );
     }
 
     @Override

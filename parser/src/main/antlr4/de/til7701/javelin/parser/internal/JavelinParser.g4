@@ -32,7 +32,6 @@ expression
     | expression binaryOperator expression #binaryOperationExpression
     | LPAREN expression RPAREN #parenExpression
     | expression LBRACK expression RBRACK #collectionAccess
-    | typeIdentifier LBRACK typeIdentifier SEMI (expression (COMMA expression)*)? RBRACK #collectionCreation
     | TypeIdentifier DOT EnumValueIdentifier #enumValueExpression
     | expression AS typeIdentifier #typeCastExpression
     ;

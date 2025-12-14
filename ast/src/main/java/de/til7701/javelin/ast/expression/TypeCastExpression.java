@@ -1,10 +1,11 @@
 package de.til7701.javelin.ast.expression;
 
 import de.til7701.javelin.ast.Span;
+import de.til7701.javelin.ast.type.Type;
 
-public record LeftUnaryExpression(
+public record TypeCastExpression(
         Span span,
-        LeftUnaryOperator operator,
+        Type targetType,
         Expression expression
 ) implements Expression {
 }

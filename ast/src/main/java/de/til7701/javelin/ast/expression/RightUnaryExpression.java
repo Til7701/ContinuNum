@@ -5,6 +5,6 @@ import de.til7701.javelin.ast.Span;
 public record RightUnaryExpression(
         Span span,
         Expression expression,
-        BinaryOperator operator
+        RightUnaryOperator operator
 ) implements Expression {
 }

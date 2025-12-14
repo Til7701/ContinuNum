@@ -5,12 +5,10 @@ import de.til7701.javelin.ast.statement.Statement;
 import de.til7701.javelin.ast.type.Type;
 
 import java.util.List;
-import java.util.Optional;
 
-public record StaticMethodCall(
+public record ConstructorCall(
         Span span,
-        Optional<Type> type,
-        String methodName,
+        Type type,
         List<Expression> arguments
 ) implements Expression, Statement {
 }

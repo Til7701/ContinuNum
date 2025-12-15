@@ -1,13 +1,20 @@
-package de.til7701.javelin.type_checker;
+package de.til7701.javelin.checker;
 
 import de.til7701.javelin.ast.Ast;
-import de.til7701.javelin.ast.expression.Expression;
+import de.til7701.javelin.ast.expression.*;
+import de.til7701.javelin.ast.statement.Assignment;
+import de.til7701.javelin.ast.statement.WhileStatement;
 import de.til7701.javelin.ast.type.Type;
-import de.til7701.javelin.core.ast.*;
-import de.til7701.javelin.core.environment.Environment;
-import de.til7701.javelin.core.reflect.*;
+import de.til7701.javelin.environment.Environment;
+import de.til7701.javelin.klass.JavaMetod;
+import de.til7701.javelin.klass.Klass;
+import de.til7701.javelin.klass.KlassRegister;
+import de.til7701.javelin.klass.Metod;
+import de.til7701.javelin.operation.Operation;
+import de.til7701.javelin.operation.OperationsRegister;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class TypeChecker {
@@ -15,7 +22,7 @@ public class TypeChecker {
     private final OperationsRegister operationsRegister;
     private final KlassRegister klassRegister;
 
-    private ContextStack context;
+    private ScopeStack context;
 
     public TypeChecker(Environment environment) {
         this.operationsRegister = environment.getOperationsRegister();
@@ -23,8 +30,8 @@ public class TypeChecker {
     }
 
     public void check(Ast ast) {
-        context = new ContextStack();
-        context.push(new Context());
+        context = new ScopeStack();
+        context.push(new Scope());
 
         List<Instruction> instructions = ast.instructions();
         for (Instruction instruction : instructions) {
@@ -38,7 +45,7 @@ public class TypeChecker {
             case StaticMethodCall staticMethodCall -> checkStaticMethodCall(staticMethodCall);
             case Assignment assignment -> checkAssignment(assignment);
             case InstructionList instructionList -> {
-                context.push(new Context());
+                context.push(new Scope());
                 instructionList.instructions().forEach(this::check);
                 context.pop();
             }

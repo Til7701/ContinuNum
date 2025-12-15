@@ -24,7 +24,7 @@
         </dependency>
         <dependency>
             <groupId>de.til7701.javelin</groupId>
-            <artifactId>type_checker</artifactId>
+            <artifactId>checker</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 

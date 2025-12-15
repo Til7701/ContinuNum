@@ -1,5 +1,6 @@
 package de.til7701.javelin.cli.log;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Marker;
 import org.slf4j.event.Level;
 import org.slf4j.helpers.AbstractLogger;
@@ -22,7 +23,7 @@ public class CliLogger extends AbstractLogger {
     }
 
     @Override
-    protected void handleNormalizedLoggingCall(Level level, Marker marker, String messagePattern, Object[] arguments, Throwable throwable) {
+    protected void handleNormalizedLoggingCall(Level level, @Nullable Marker marker, String messagePattern, @Nullable Object[] arguments, @Nullable Throwable throwable) {
         switch (level) {
             case ERROR, WARN -> {
                 String formattedMessage = formatMessage(messagePattern, arguments);
@@ -54,7 +55,7 @@ public class CliLogger extends AbstractLogger {
         }
     }
 
-    private static String formatMessage(String pattern, Object... args) {
+    private static String formatMessage(String pattern, @Nullable Object... args) {
         return MessageFormatter.basicArrayFormat(pattern, args);
     }
 

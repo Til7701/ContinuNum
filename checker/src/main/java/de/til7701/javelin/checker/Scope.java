@@ -1,11 +1,11 @@
-package de.til7701.javelin.type_checker;
+package de.til7701.javelin.checker;
 
-import de.til7701.javelin.core.reflect.Type;
+import de.til7701.javelin.ast.type.Type;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class Context {
+public class Scope {
 
     private final Map<String, Type> variables = new HashMap<>();
 

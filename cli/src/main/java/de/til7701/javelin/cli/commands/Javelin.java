@@ -2,11 +2,11 @@ package de.til7701.javelin.cli.commands;
 
 import de.til7701.javelin.Interpreter;
 import de.til7701.javelin.ast.Ast;
+import de.til7701.javelin.checker.TypeChecker;
 import de.til7701.javelin.cli.VersionProvider;
 import de.til7701.javelin.cli.mixins.DebugMixin;
 import de.til7701.javelin.environment.Environment;
 import de.til7701.javelin.parser.FileParser;
-import de.til7701.javelin.type_checker.TypeChecker;
 import picocli.CommandLine;
 
 import java.io.File;

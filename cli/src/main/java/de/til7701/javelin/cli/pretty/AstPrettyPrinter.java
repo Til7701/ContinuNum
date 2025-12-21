@@ -1,4 +1,4 @@
-package de.til7701.javelin.pretty;
+package de.til7701.javelin.cli.pretty;
 
 import de.til7701.javelin.ast.Ast;
 import de.til7701.javelin.ast.Script;
@@ -13,6 +13,7 @@ public class AstPrettyPrinter {
 
     private static final String INDENT = "    ";
     private static final String NEWLINE = System.lineSeparator();
+
     private final Consumer<String> outputConsumer;
 
     public AstPrettyPrinter(Consumer<String> outputConsumer) {

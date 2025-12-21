@@ -6,7 +6,6 @@ import de.til7701.javelin.ast.type_definition.TypeDefinition;
 import de.til7701.javelin.klass.Klass;
 import de.til7701.javelin.klass.KlassLoader;
 import de.til7701.javelin.parser.Parser;
-import de.til7701.javelin.pretty.AstPrettyPrinter;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.CharStream;
@@ -14,6 +13,7 @@ import org.antlr.v4.runtime.CharStreams;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,6 +33,8 @@ public class Sdk {
 
     @Getter
     private final List<Klass> klasses;
+    @Getter
+    private final List<Ast> asts = new ArrayList<>();
 
     private final KlassLoader klassLoader = new KlassLoader();
 
@@ -56,12 +58,7 @@ public class Sdk {
             CharStream charStream = CharStreams.fromStream(stream);
             Parser parser = new Parser();
             Ast ast = parser.parse(charStream, resourcePath);
-            if (log.isDebugEnabled()) {
-                StringBuilder builder = new StringBuilder();
-                AstPrettyPrinter prettyPrinter = new AstPrettyPrinter(builder::append);
-                prettyPrinter.print(ast, 0);
-                log.debug("Parsed SDK class '{}':\n{}", name, builder);
-            }
+            asts.add(ast);
             return switch (ast) {
                 case TypeDefinition typeDef -> klassLoader.loadKlassFromAst(name, typeDef);
                 case Script _ ->

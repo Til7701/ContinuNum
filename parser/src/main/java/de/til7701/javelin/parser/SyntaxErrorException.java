@@ -7,13 +7,15 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public class SyntaxErrorException extends RuntimeException {
 
+    private final String sourceName;
     private final transient Object offendingSymbol;
     private final int line;
     private final int charPositionInLine;
     private final String msg;
 
-    public SyntaxErrorException(Object offendingSymbol, int line, int charPositionInLine, String msg, Throwable cause) {
+    public SyntaxErrorException(String sourceName, Object offendingSymbol, int line, int charPositionInLine, String msg, Throwable cause) {
         super(cause);
+        this.sourceName = sourceName;
         this.offendingSymbol = offendingSymbol;
         this.line = line;
         this.charPositionInLine = charPositionInLine;
@@ -22,7 +24,7 @@ public class SyntaxErrorException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return "[ERROR] line " + line + ": " + msg;
+        return "[ERROR] " + sourceName + " line " + line + ": " + msg;
     }
 
 }

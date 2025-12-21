@@ -1,6 +1,7 @@
 package de.til7701.javelin.interpreter;
 
-import de.til7701.javelin.core.reflect.Type;
+
+import de.til7701.javelin.ast.type.Type;
 
 public interface Variable {
 

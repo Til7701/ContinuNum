@@ -37,7 +37,7 @@ public class AnnotationProcessorManager {
     }
 
     private Result processClassDefinition(ClassDefinition classDefinition) {
-        return classDefinition;
+        return null;
     }
 
     private record Result(Ast ast, boolean modified) {

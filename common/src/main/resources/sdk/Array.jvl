@@ -13,11 +13,15 @@ pub static native elementAt(Array array, I index, E value) {
 @BinaryOp(operator = BinaryOperator.ADD)
 pub static Array<I, E> concat(Array<I, E> a, Array<I, E> b) {
     Array<I, E> newArray = Array<I, E>(a.size() + b.size());
-    for mut I i = 0; i < a.size(); i++ {
+    mut I32 i = 0;
+    while i < a.size() {
         newArray[i] = a[i];
+        i++;
     }
-    for mut I j = 0; j < b.size(); j++ {
+    mut I32 j = 0;
+    while j < b.size() {
         newArray[a.size() + j] = b[j];
+        j++;
     }
     return newArray;
 }

@@ -81,7 +81,7 @@ typeModifier
     ;
 
 classTypeDefinition
-    : typeModifier* CLASS genericTypeList? SEMI (EXTENDS typeIdentifier (COMMA typeIdentifier)*)? fieldDefinition* constructorDefinition* methodDefinition*
+    : typeModifier* CLASS genericTypeList? SEMI (EXTENDS typeIdentifier (COMMA typeIdentifier)* SEMI)? fieldDefinition* constructorDefinition* methodDefinition*
     ;
 
 genericTypeList

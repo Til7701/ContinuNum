@@ -1,6 +1,6 @@
 package de.til7701.javelin.cli;
 
-import de.til7701.javelin.core.parser.SyntaxErrorException;
+import de.til7701.javelin.parser.SyntaxErrorException;
 import picocli.CommandLine;
 
 public class ExceptionExitCodeMapper implements CommandLine.IExitCodeExceptionMapper {

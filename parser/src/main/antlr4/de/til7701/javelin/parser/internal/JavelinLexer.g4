@@ -72,7 +72,7 @@ IntegerLiteral : [0-9]+;
 StringLiteral : '"' ( ~["\\] | '\\' . )* '"';
 BooleanLiteral : 'true' | 'false';
 
-EnumValueIdentifier : [A-Z][A-Z_]*;
+EnumValueIdentifier : [A-Z][A-Z_]+;
 ITypeIdentifier : 'I' [0-9]+;
 TypeIdentifier : [A-Z][a-zA-Z0-9]*;
 SymbolIdentifier : [a-z][a-zA-Z_0-9]*;

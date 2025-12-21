@@ -35,7 +35,6 @@ public class Walker extends JavelinParserBaseVisitor<Node> {
     public Node visitCompilationUnit(JavelinParser.CompilationUnitContext ctx) {
         List<JavelinParser.StatementContext> statementContexts = ctx.statement();
         if (statementContexts != null && !statementContexts.isEmpty()) {
-            log.debug("Visiting compilation unit with {} statements", statementContexts.size());
             List<Statement> statements = ctx.statement().stream()
                     .map(statementContext -> (Statement) visit(statementContext))
                     .toList();
@@ -45,7 +44,6 @@ public class Walker extends JavelinParserBaseVisitor<Node> {
                     statements
             );
         } else {
-            log.debug("Visiting type definition compilation unit");
             return visit(ctx.typeDefinition());
         }
     }
@@ -205,9 +203,14 @@ public class Walker extends JavelinParserBaseVisitor<Node> {
 
     @Override
     public Node visitConstructorCall(JavelinParser.ConstructorCallContext ctx) {
-        List<Expression> args = ctx.expression().subList(1, ctx.expression().size()).stream()
-                .map(c -> (Expression) visit(c))
-                .toList();
+        List<Expression> args;
+        if (ctx.expression().size() <= 1) {
+            args = Collections.emptyList();
+        } else {
+            args = ctx.expression().subList(1, ctx.expression().size()).stream()
+                    .map(c -> (Expression) visit(c))
+                    .toList();
+        }
         return new ConstructorCall(
                 createSpan(ctx),
                 (Type) visit(ctx.typeIdentifier()),
@@ -339,6 +342,8 @@ public class Walker extends JavelinParserBaseVisitor<Node> {
     }
 
     public List<Type> constructGenericTypeList(JavelinParser.GenericTypeListContext ctx) {
+        if (ctx == null || ctx.typeIdentifier().isEmpty())
+            return Collections.emptyList();
         List<Type> typeArguments = new ArrayList<>();
         for (int i = 1; i < ctx.typeIdentifier().size(); i++)
             typeArguments.add((Type) visit(ctx.typeIdentifier(i)));
@@ -358,7 +363,7 @@ public class Walker extends JavelinParserBaseVisitor<Node> {
     public Node visitITypeIdentifier(JavelinParser.ITypeIdentifierContext ctx) {
         return new IType(
                 createSpan(ctx),
-                Integer.parseInt(ctx.getText().substring(1, ctx.getText().length() - 1))
+                Integer.parseInt(ctx.getText().substring(1, ctx.getText().length()))
         );
     }
 
@@ -403,11 +408,14 @@ public class Walker extends JavelinParserBaseVisitor<Node> {
                 createSpan(ctx),
                 typeModifiers,
                 new TypeList(
-                        createSpan(ctx.genericTypeList()),
+                        ctx.genericTypeList() == null ?
+                                new Span(-1, -1, -1, -1) :
+                                createSpan(ctx.genericTypeList()),
                         constructGenericTypeList(ctx.genericTypeList())
                 ),
                 new TypeList(
-                        createSpan(ctx.typeIdentifier(0), ctx.typeIdentifier(ctx.typeIdentifier().size() - 1)),
+                        superTypes.isEmpty() ? new Span(-1, -1, -1, -1) :
+                                createSpan(ctx.typeIdentifier(0), ctx.typeIdentifier(ctx.typeIdentifier().size() - 1)),
                         superTypes
                 ),
                 fields,
@@ -465,7 +473,9 @@ public class Walker extends JavelinParserBaseVisitor<Node> {
                 createSpan(ctx),
                 annotations,
                 modifiers,
-                (MethodParameters) visit(ctx.parametherList()),
+                ctx.parametherList() == null
+                        ? new MethodParameters(createSpan(ctx), Collections.emptyList())
+                        : (MethodParameters) visit(ctx.parametherList()),
                 (Statement) visit(ctx.statement())
         );
     }
@@ -487,7 +497,9 @@ public class Walker extends JavelinParserBaseVisitor<Node> {
                 modifiers,
                 returnType,
                 ctx.SymbolIdentifier().getText(),
-                (MethodParameters) visit(ctx.parametherList()),
+                ctx.parametherList() == null
+                        ? new MethodParameters(createSpan(ctx), Collections.emptyList())
+                        : (MethodParameters) visit(ctx.parametherList()),
                 (Statement) visit(ctx.statement())
         );
     }

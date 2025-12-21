@@ -16,21 +16,21 @@ public class Parser {
 
     public Ast parseFile(File file) throws IOException {
         CharStream charStream = CharStreams.fromFileName(file.getAbsolutePath());
-        return parse(charStream);
+        return parse(charStream, file.getName());
     }
 
-    public Ast parseString(String content) {
+    public Ast parseString(String content, String sourceName) {
         CharStream charStream = CharStreams.fromString(content);
-        return parse(charStream);
+        return parse(charStream, sourceName);
     }
 
-    public Ast parse(CharStream charStream) {
+    public Ast parse(CharStream charStream, String sourceName) {
         JavelinLexer lexer = new JavelinLexer(charStream);
         CommonTokenStream commonTokenStream = new CommonTokenStream(lexer);
 
         JavelinParser parser = new JavelinParser(commonTokenStream);
         parser.removeErrorListener(ConsoleErrorListener.INSTANCE);
-        parser.addErrorListener(new ErrorListener());
+        parser.addErrorListener(new ErrorListener(sourceName));
 
         ParseTree cst = parser.compilationUnit();
         JavelinParserBaseVisitor<Node> listener = new Walker();

@@ -1,20 +1,20 @@
 package de.til7701.javelin.checker;
 
 import de.til7701.javelin.ast.Ast;
-import de.til7701.javelin.ast.expression.*;
-import de.til7701.javelin.ast.statement.Assignment;
-import de.til7701.javelin.ast.statement.WhileStatement;
+import de.til7701.javelin.ast.expression.ConstructorCall;
+import de.til7701.javelin.ast.expression.Expression;
+import de.til7701.javelin.ast.expression.InstanceMethodCall;
+import de.til7701.javelin.ast.expression.StaticMethodCall;
+import de.til7701.javelin.ast.statement.*;
 import de.til7701.javelin.ast.type.Type;
 import de.til7701.javelin.environment.Environment;
 import de.til7701.javelin.klass.JavaMetod;
 import de.til7701.javelin.klass.Klass;
 import de.til7701.javelin.klass.KlassRegister;
 import de.til7701.javelin.klass.Metod;
-import de.til7701.javelin.operation.Operation;
 import de.til7701.javelin.operation.OperationsRegister;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 public class TypeChecker {
@@ -33,44 +33,46 @@ public class TypeChecker {
         context = new ScopeStack();
         context.push(new Scope());
 
-        List<Instruction> instructions = ast.instructions();
-        for (Instruction instruction : instructions) {
-            check(instruction);
-        }
     }
 
-    private void check(Instruction instruction) {
-        switch (instruction) {
-            case SymbolInitialization symbolInitialization -> checkSymbolInitialization(symbolInitialization);
+    private void check(Statement statement) {
+        switch (statement) {
+            case VariableInitialization variableInitialization -> checkSymbolInitialization(variableInitialization);
             case StaticMethodCall staticMethodCall -> checkStaticMethodCall(staticMethodCall);
             case Assignment assignment -> checkAssignment(assignment);
-            case InstructionList instructionList -> {
+            case StatementList statementList -> {
                 context.push(new Scope());
-                instructionList.instructions().forEach(this::check);
+                statementList.statements().forEach(this::check);
                 context.pop();
             }
             case WhileStatement whileStatement -> {
                 Expression condition = whileStatement.condition();
                 Type conditionType = evaluateExpressionType(condition);
-                if (!conditionType.equals(Bool.instance())) {
-                    throw new RuntimeException("Type mismatch: while condition must be of type Bool, but found " + conditionType);
-                }
                 check(whileStatement.body());
             }
             case InstanceMethodCall instanceMethodCall -> checkInstanceMethodCall(instanceMethodCall);
+            case ConstructorCall constructorCall -> {
+            }
+            case BreakStatement breakStatement -> {
+            }
+            case ContinueStatement continueStatement -> {
+            }
+            case ForStatement forStatement -> {
+            }
+            case IfStatement ifStatement -> {
+            }
+            case ReturnStatement returnStatement -> {
+            }
+            case Expression expression -> {
+            }
         }
     }
 
     private void checkAssignment(Assignment assignment) {
-        Type expressionType = evaluateExpressionType(assignment.value());
-        Type variableType = context.getVariable(assignment.name());
-        if (!variableType.isAssignableFrom(expressionType)) {
-            throw new RuntimeException("Type mismatch: cannot assign " + expressionType + " to " + variableType);
-        }
     }
 
     private Type checkStaticMethodCall(StaticMethodCall staticMethodCall) {
-        Klass klass = klassRegister.getKlass(staticMethodCall.typeName().orElseThrow()).orElseThrow();
+        Klass klass = klassRegister.getKlass(staticMethodCall.type().orElseThrow()).orElseThrow();
 
         Type[] parameterTypes = staticMethodCall.arguments().stream()
                 .map(this::evaluateExpressionType)
@@ -109,46 +111,14 @@ public class TypeChecker {
     }
 
 
-    private void checkSymbolInitialization(SymbolInitialization symbolInitialization) {
-        Type symbolType = symbolInitialization.type();
-        Type expressionType = evaluateExpressionType(symbolInitialization.value());
-        if (!symbolType.isAssignableFrom(expressionType)) {
-            throw new RuntimeException("Type mismatch: cannot assign " + expressionType + " to " + symbolType);
-        }
-        context.initializeVariable(symbolInitialization.name(), symbolType);
+    private void checkSymbolInitialization(VariableInitialization variableInitialization) {
+        Type symbolType = variableInitialization.type();
+        Type expressionType = evaluateExpressionType(variableInitialization.value());
+        context.initializeVariable(variableInitialization.name(), symbolType);
     }
 
     private Type evaluateExpressionType(Expression value) {
-        return switch (value) {
-            case BooleanLiteralExpression _ -> throw new UnsupportedOperationException();
-            case IntegerLiteralExpression _ -> I32.instance();
-            case StringLiteralExpression _ -> Str.instance();
-            case StaticMethodCall staticMethodCall -> checkStaticMethodCall(staticMethodCall);
-            case BinaryExpression(Expression left, BinaryOperator operator, Expression right) -> {
-                Type leftType = evaluateExpressionType(left);
-                Type rightType = evaluateExpressionType(right);
-                Operation operation = operationsRegister.getBinaryOperation(operator, leftType, rightType)
-                        .orElseThrow(() -> new RuntimeException("Operation " + operator +
-                                " not found for types " + leftType + " and " + rightType));
-                yield operation.resultType();
-            }
-            case SymbolExpression(String identifier) -> context.getVariable(identifier);
-            case InstanceMethodCall instanceMethodCall -> checkInstanceMethodCall(instanceMethodCall);
-            case CollectionCreationExpression(List<Expression> elements) -> {
-                if (elements.isEmpty()) {
-                    yield Any.instance();
-                }
-                Type indexType = I32.instance();
-                Type elementType = evaluateExpressionType(elements.getFirst());
-                for (Expression element : elements) {
-                    Type currentType = evaluateExpressionType(element);
-                    if (!elementType.equals(currentType)) {
-                        throw new RuntimeException("Type mismatch in collection elements: expected " + elementType + " but found " + currentType);
-                    }
-                }
-                yield Collection.instance(indexType, elementType);
-            }
-        };
+        return null;
     }
 
 }

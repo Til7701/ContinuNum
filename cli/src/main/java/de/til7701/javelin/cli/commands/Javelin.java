@@ -1,17 +1,20 @@
 package de.til7701.javelin.cli.commands;
 
-import de.til7701.javelin.Interpreter;
 import de.til7701.javelin.ast.Ast;
 import de.til7701.javelin.checker.TypeChecker;
 import de.til7701.javelin.cli.VersionProvider;
 import de.til7701.javelin.cli.mixins.DebugMixin;
 import de.til7701.javelin.environment.Environment;
-import de.til7701.javelin.parser.FileParser;
+import de.til7701.javelin.parser.Parser;
+import de.til7701.javelin.pretty.AstPrettyPrinter;
+import de.til7701.javelin.sdk.Sdk;
+import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine;
 
 import java.io.File;
 import java.util.concurrent.Callable;
 
+@Slf4j
 @CommandLine.Command(
         name = "jvl",
         mixinStandardHelpOptions = true,
@@ -32,13 +35,25 @@ public class Javelin implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        FileParser fileParser = new FileParser();
-        Ast ast = fileParser.parse(source);
+        Parser fileParser = new Parser();
+        Ast ast = fileParser.parseFile(source);
+
+        if (log.isDebugEnabled()) {
+            StringBuilder builder = new StringBuilder();
+            AstPrettyPrinter prettyPrinter = new AstPrettyPrinter(builder::append);
+            prettyPrinter.print(ast, 0);
+            log.debug("Parsed AST:\n{}", builder);
+        }
+
         final Environment env = new Environment();
+        Sdk sdk = new Sdk();
+        for (var klass : sdk.getKlasses()) {
+            env.getKlassRegister().registerKlass(klass);
+        }
         TypeChecker typeChecker = new TypeChecker(env);
         typeChecker.check(ast);
-        Interpreter interpreter = new Interpreter(env);
-        interpreter.interpret(ast);
+//        Interpreter interpreter = new Interpreter(env);
+//        interpreter.interpret(ast);
         return 0;
     }
 

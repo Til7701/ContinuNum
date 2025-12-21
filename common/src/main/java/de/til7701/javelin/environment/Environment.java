@@ -5,14 +5,10 @@ import de.til7701.javelin.klass.KlassRegister;
 import de.til7701.javelin.operation.OperationsRegister;
 import lombok.Getter;
 
-import java.nio.file.Files;
-
 @Getter
 public class Environment {
 
     private static final Class<?>[] DEFAULT_JAVA_CLASSES = new Class<?>[]{
-            IO.class,
-            Files.class,
     };
 
     private final OperationsRegister operationsRegister = new OperationsRegister();

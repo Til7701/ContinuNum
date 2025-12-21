@@ -1,3 +1,6 @@
+import org.jspecify.annotations.NullMarked;
+
+@NullMarked
 module de.til7701.javelin.parser {
     requires transitive de.til7701.javelin.ast;
 

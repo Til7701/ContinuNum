@@ -97,9 +97,9 @@ public class KlassLoader {
                 .map(constructorDefinition -> new JavelinConstructor(
                         klassName,
                         finalKlassType,
-                        (Type[]) constructorDefinition.parameters().parameters().stream()
+                        constructorDefinition.parameters().parameters().stream()
                                 .map(MethodParameter::type)
-                                .toArray(),
+                                .toArray(Type[]::new),
                         constructorDefinition.parameters().parameters().stream()
                                 .map(MethodParameter::name)
                                 .toArray(String[]::new),
@@ -110,9 +110,9 @@ public class KlassLoader {
                 .map(methodDefinition -> (Metod) new JavelinMetod(
                         methodDefinition.name(),
                         methodDefinition.returnType().orElse(new SimpleType(methodDefinition.span(), "None")),
-                        (Type[]) methodDefinition.parameters().parameters().stream()
+                        methodDefinition.parameters().parameters().stream()
                                 .map(MethodParameter::type)
-                                .toArray(),
+                                .toArray(Type[]::new),
                         methodDefinition.parameters().parameters().stream()
                                 .map(MethodParameter::name)
                                 .toArray(String[]::new),
